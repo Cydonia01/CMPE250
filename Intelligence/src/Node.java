@@ -2,7 +2,7 @@
  * This class is Node class which represents a member in family.
  * 
  * @author Mehmet Ali Özdemir
- * @since Date: 05.11.2023
+ * @since Date: 04.11.2023
  */
 public class Node {
 	private String name;
@@ -11,12 +11,12 @@ public class Node {
 	Node leftChild;
 	Node rightChild;
 	
-	Node(String name, double gms, int rank) {
+	Node (String name, double gms) {
 		this.name = name;
 		this.gms = gms;
-		this.rank = rank;
-		leftChild = null;
-		rightChild = null;
+		this.leftChild = null;
+		this.rightChild = null;
+		this.rank = 1;
 	}
 	
 	public double getGms() {

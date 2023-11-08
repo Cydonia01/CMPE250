@@ -2,38 +2,38 @@
  * This class contains methods and data fields of family tree.
  * 
  * @author Mehmet Ali Özdemir
- * @since Date: 05.11.2023
+ * @since Date: 04.11.2023
  */
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Queue;
-import java.util.HashMap;
 
 public class FamilyTree {
 	private Node root;
-	private HashMap<Integer, String> rankMap;
+	private FileWriter writer;
 	
-	FamilyTree(String[] boss) {
-		root = new Node(null, 0, 0);
-		root.setName(boss[0]);
-		root.setGms(Double.parseDouble(boss[1]));
-		this.rankMap = new HashMap<Integer,String>();
+	FamilyTree(FileWriter writer) {
+		root = null;
+		this.writer = writer;
 	}
 	
 	
 	/**
-	 * This method inserts a member to family tree recursively. It also does rearrangements after inserting the member.
+	 * This method inserts a member to the family tree recursively. It also does rearrangements after inserting the member.
 	 * 
 	 * @param name name of the member
 	 * @param gms gms of the member
 	 * @return a node
+	 * @throws IOException 
 	 */
-	public Node insert(String name, double gms) { return insert(root, name, gms); }
+	public void insert(String name, double gms) throws IOException { root = insert(root, name, gms); }
 	
-	public Node insert(Node target, String name, double gms) {
+	private Node insert(Node target, String name, double gms) throws IOException {
 		if (target == null) {
-			Node temp = new Node(name, gms, 1);
-			return temp;
+			return new Node(name, gms);
 		}
 		
 		if (gms < target.getGms()) {
@@ -48,7 +48,18 @@ public class FamilyTree {
 		
 		target.setRank(nodeRank(target));
 		
-		return rearrange(target);
+		int balance = balanceFactor(target);
+		
+		if (balance == 2 && balanceFactor(target.leftChild) == 1)
+			return LLRotation(target);
+		if (balance == 2 && balanceFactor(target.leftChild) == -1)
+			return LRRotation(target);
+		if (balance == -2 && balanceFactor(target.rightChild) == -1)
+			return RRRotation(target);
+		if (balance == -2 && balanceFactor(target.rightChild) == 1)
+			return RLRotation(target);
+		
+		return target;
 	}
 	
 	
@@ -58,55 +69,75 @@ public class FamilyTree {
 	 * @param name name of the member
 	 * @param gms gms of the member
 	 * @return a node
+	 * @throws IOException 
 	 */	
-	public Node delete(String name, double gms) { return delete(root, name, gms); }
+	public void delete(String name, double gms) throws IOException { root = delete(root, name, gms, false); }
 	
-	public Node delete(Node target, String name, double gms) {
-		Node chosen;
-		
+	private Node delete(Node target, String name, double gms, boolean printed) throws IOException {
 		if (target == null)
 			return null;
 		
-		if (target.leftChild == null && target.rightChild == null) {
-			if (target == root)
-				root = null;
-			return null;
-		}
-		
 		if (gms < target.getGms())
-			target.leftChild = delete(target.leftChild, name, gms);
+			target.leftChild = delete(target.leftChild, name, gms, printed);
 		
 		else if (gms > target.getGms())
-			target.rightChild = delete(target.rightChild, name, gms);
+			target.rightChild = delete(target.rightChild, name, gms, printed);
 		
 		else {
-			if (target.leftChild != null && target.rightChild != null) {
-				chosen = findLeftMost(target.rightChild);
-				logOut(target.getName(), chosen.getName());
-				target.setName(chosen.getName());
-				target.setGms(chosen.getGms());
-				target.rightChild = delete(target.rightChild, name, chosen.getGms());
+			if (target.rightChild == null && target.leftChild == null) {
+				if (!printed) {
+					logOut(target.getName(), "nobody");
+					printed = true;
+				}
+				return null;
 			}
-			else if (target.rightChild != null) {
-				logOut(target.getName(), target.rightChild.getName());
-				target.setName(target.rightChild.getName());
-				target.setGms(target.rightChild.getGms());
-				target.rightChild = delete(target.rightChild, name, target.rightChild.getGms());
-			}
-			else if (target.leftChild != null) {
-				logOut(target.getName(), target.leftChild.getName());
+			else if (target.rightChild == null) {
+				if (!printed) {
+					logOut(target.getName(), target.leftChild.getName());
+					printed = true;
+				}
+				
 				target.setName(target.leftChild.getName());
 				target.setGms(target.leftChild.getGms());
-				target.leftChild = delete(target.leftChild, name, target.leftChild.getGms());
+				target.leftChild = delete(target.leftChild, name, target.leftChild.getGms(), printed);
+			}
+			else if (target.leftChild == null) {
+				if (!printed) {
+					logOut(target.getName(), target.rightChild.getName());
+					printed = true;
+				}
+				
+				target.setName(target.rightChild.getName());
+				target.setGms(target.rightChild.getGms());
+				target.rightChild = delete(target.rightChild, name, target.rightChild.getGms(), printed);
 			}
 			else {
-				logOut(target.getName(), "nobody");
+				Node chosen = findLeftMost(target.rightChild);
+				if (!printed) {
+					logOut(target.getName(), chosen.getName());
+					printed = true;
+				}
+				
+				target.setName(chosen.getName());
+				target.setGms(chosen.getGms());
+				target.rightChild = delete(target.rightChild, name, chosen.getGms(), printed);
 			}
 		}
 		
 		target.setRank(nodeRank(target));
 		
-		return rearrange(target);
+		int balance = balanceFactor(target);
+		
+		if (balance == 2 && balanceFactor(target.leftChild) >= 0)
+			return LLRotation(target);
+		if (balance == 2 && balanceFactor(target.leftChild) < 0)
+			return LRRotation(target);
+		if (balance == -2 && balanceFactor(target.rightChild) <= 0)
+			return RRRotation(target);
+		if (balance == -2 && balanceFactor(target.rightChild) > 0)
+			return RLRotation(target);
+		
+		return target;
 	}
 	
 	
@@ -117,10 +148,10 @@ public class FamilyTree {
 	 * @param target starting node
 	 * @return wanted node
 	 */
-	private Node findLeftMost(Node target) {
-		while (target != null && target.leftChild != null)
-			target = target.leftChild;
-		return target;
+	private Node findLeftMost(Node currentNode) {
+		while (currentNode.leftChild != null)
+			currentNode = currentNode.leftChild;
+		return currentNode;
 	}
 	
 	
@@ -225,10 +256,10 @@ public class FamilyTree {
 	
 	
 	/**
-	 * This method finds the height of a node in the tree.
+	 * This method finds the rank (height) of a node in the tree.
 	 * 
 	 * @param target root node
-	 * @return height
+	 * @return rank (height)
 	 */
 	private int nodeRank(Node target) {
 		int rankLeft, rankRight;
@@ -260,28 +291,6 @@ public class FamilyTree {
 	
 	
 	/**
-	 * This method rearranges the tree according to balance factor.
-	 * 
-	 * @param target any node
-	 * @return a node
-	 */
-	private Node rearrange(Node target) {
-		int balance = balanceFactor(target);
-		
-		if (balance == 2 && balanceFactor(target.leftChild) == 1)
-			return LLRotation(target);
-		if (balance == 2 && balanceFactor(target.leftChild) == -1)
-			return LRRotation(target);
-		if (balance == -2 && balanceFactor(target.rightChild) == -1)
-			return RRRotation(target);
-		if (balance == -2 && balanceFactor(target.rightChild) == 1)
-			return RLRotation(target);
-		
-		return target;
-	}
-	
-	
-	/**
 	 * This method finds the intel about target members. After using findPath method it traverses reversely
 	 * on these arrays to find the lowest ranking member superior of both members.
 	 * 
@@ -289,19 +298,18 @@ public class FamilyTree {
 	 * @param firstMemberGms
 	 * @param secondMemberName
 	 * @param secondMemberGms
+	 * @throws IOException 
 	 */
-	public void intelTarget(String firstMemberName, double firstMemberGms, String secondMemberName, double secondMemberGms) {
+	public void intelTarget(String firstMemberName, double firstMemberGms, String secondMemberName, double secondMemberGms) throws IOException {
 		ArrayList<Node> firstMemberPath = findPath(firstMemberName, firstMemberGms);
 		ArrayList<Node> secondMemberPath = findPath(secondMemberName, secondMemberGms);
-		
-		
+
 		int index;
-		int a = firstMemberPath.size();
-		int b = secondMemberPath.size();
-		if (a <= b)
-			index = a - 1;
+
+		if (firstMemberPath.size() <= secondMemberPath.size())
+			index = firstMemberPath.size() - 1;
 		else
-			index = b - 1;
+			index = secondMemberPath.size() - 1;
 		
 		for (int i = index; i >= 0; i--) {
 			if (firstMemberPath.get(i).getName().equals(secondMemberPath.get(i).getName())) {
@@ -317,145 +325,144 @@ public class FamilyTree {
 	 * 
 	 * @param name name of the member
 	 * @param gms gms of the member
-	 * @return array including ancestors of the member.
+	 * @return array including ancestors of the member and member itself.
 	 */
 	private ArrayList<Node> findPath(String name, double gms) {
-		Node target = root;
+		Node currentNode = root;
 		ArrayList<Node> path = new ArrayList<>();
 		
-		while(target.getGms() != gms) {
-			path.add(target);
+		while(true) {
+			path.add(currentNode);
 			
-			if (gms < target.getGms())
-				target = target.leftChild;
+			if (gms < currentNode.getGms())
+				currentNode = currentNode.leftChild;
 			
-			if (gms > target.getGms())
-				target = target.rightChild;
+			else if (gms > currentNode.getGms())
+				currentNode = currentNode.rightChild;
+			
+			else if (gms == currentNode.getGms()) {
+				break;
+			}
 		}
 		
 		if (path.isEmpty())
-			path.add(target);
+			path.add(currentNode);
 		
 		return path;
 	}
 	
 	
 	/**
-	 * This method divides the family.
-	 * @return
+	 * These methods divide the family. It finds number of members counted when the root is counted and when it is not counted.
+	 * It does this operation to the roots of subtrees, too. After storing these numbers, it returns the maximum of these numbers.
+	 * The first element of result array stores the maximum number of members when root is not counted, the other stores the maximum
+	 * number of members when root is counted.
+	 * 
+	 * @return maximum number of members divided.
 	 */
 	public int divide() { return divide(root); }
 	
 	public int divide(Node root) {
-		int[] result = partition(root);
+		int[] result = subTree(root);
 		return Math.max(result[0], result[1]);
 	}
 	
-	private int[] partition(Node root) {
+	private int[] subTree(Node root) {
 		if (root == null) {
 			return new int[2];
 		}
 		
-		int[] left = partition(root.leftChild);
-	    int[] right = partition(root.rightChild);
+		int[] leftSub = subTree(root.leftChild);
+	    int[] rightSub = subTree(root.rightChild);
 	    int[] result = new int[2];
 
-	    result[0] = Math.max(left[0], left[1]) + Math.max(right[0], right[1]);
-	    result[1] = left[0] + right[0] + 1;
+	    result[0] = Math.max(leftSub[0], leftSub[1]) + Math.max(rightSub[0], rightSub[1]);
+	    result[1] = leftSub[0] + rightSub[0] + 1;
 	    
 	    return result;
 	}
 	
 	
 	/**
-	 * This method finds the rank of a member.
+	 * This method prints the name of the members who has the same rank with the target member 
+	 * by breadth first search.
 	 * 
 	 * @param gms gms of the member
-	 * @return rank of the member
+	 * @throws IOException 
 	 */
-	private int findRank(double gms) {
-		Node target = root;
-		
-		while (target != null) {
-			if (gms < target.getGms())
-				target = target.leftChild;
-			
-			else if (gms > target.getGms())
-				target = target.rightChild;
-			
-			else
-				return target.getRank();
-		}
-		return -1;
-	}
-	
-	
-	/**
-	 * This method prints the name of the members who has the same rank with the target member.
-	 * 
-	 * @param gms gms of the member
-	 */
-	public void monitorRanks(double gms) {
-		Node target = root;
-		String result = "Rank Analysis Result: ";
-		int rank = findRank(gms);
-		
+	public void monitorRanks(double gms) throws IOException {
 		Queue<Node> membersQueue = new LinkedList<>();
-		membersQueue.add(target);
-		
-		if (this.rankMap.containsKey(rank))
-			System.out.println(this.rankMap.get(rank));
-		
-		else {
-			while (!membersQueue.isEmpty()) {
-				target = membersQueue.poll();
-				
-				if (target.getRank() < rank)
-					break;
-				
-				if (target.getRank() == rank)
-					result += String.format("%s %.3f ", target.getName(), target.getGms());
-					
-				if (target.leftChild != null)
-					membersQueue.add(target.leftChild);
+		ArrayList<String> result = new ArrayList<>();
 
-				if (target.rightChild != null)
-					membersQueue.add(target.rightChild);
+		int queueLength;
+		boolean found = false;
+		
+		writer.write("Rank Analysis Result:");
+		
+		membersQueue.offer(root);
+		
+		while (!membersQueue.isEmpty()) {
+			queueLength = membersQueue.size();
+			result.clear();
+			
+			for (int i = 0; i < queueLength; i++) {
+				Node target = membersQueue.poll();
+				
+				if (target != null) {
+					if (target.getGms() == gms)
+						found = true;
+					
+					result.add(String.format(Locale.US, " %s %.3f", target.getName(), target.getGms()));
+					
+					if (target.leftChild != null)
+						membersQueue.add(target.leftChild);
+					
+					if (target.rightChild != null)
+						membersQueue.add(target.rightChild);							
+				}
 			}
-			rankMap.put(rank, result);
-			System.out.println(result);
+			
+			if (found)
+				break;
 		}
+		
+		for (String str: result)
+			writer.write(str);
+		writer.write("\n");
 	}
 	
 	
 	/**
-	 * This method prints who welcomes a member.
+	 * This method writes who welcomes a member.
 	 * 
 	 * @param superiorName
 	 * @param inferiorName
+	 * @throws IOException 
 	 */
-	private void logIn(String superiorName, String inferiorName) {
-		System.out.println(superiorName + " welcomed " + inferiorName);
+	private void logIn(String superiorName, String inferiorName) throws IOException {
+		writer.write(superiorName + " welcomed " + inferiorName + "\n");
 	}
 	
 	
 	/**
-	 * This method prints who left and who replaced it.
+	 * This method writes who left and who replaced it.
 	 * 
 	 * @param goneMemberName
 	 * @param replacingMemberName
+	 * @throws IOException 
 	 */
-	private void logOut(String goneMemberName, String replacingMemberName) {
-		System.out.println(goneMemberName + " left the family, replaced by " + replacingMemberName);
+	private void logOut(String goneMemberName, String replacingMemberName) throws IOException {
+		writer.write(goneMemberName + " left the family, replaced by " + replacingMemberName + "\n");
 	}
 	
 	
 	/**
-	 * This method prints the superior of the targeted members.
+	 * This method writes the superior of the targeted members.
 	 * 
 	 * @param superior
+	 * @throws IOException 
 	 */
-	private void logIntel(Node superior) {
-		System.out.println(String.format("Target Analysis Result: %s %.3f", superior.getName(), superior.getGms()));
+	private void logIntel(Node superior) throws IOException {
+		writer.write(String.format(Locale.US, "Target Analysis Result: %s %.3f\n", superior.getName(), superior.getGms()));
 	}
 }
