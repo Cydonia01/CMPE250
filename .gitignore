@@ -23,3 +23,9 @@
 hs_err_pid*
 replay_pid*
 /bin/
+Intelligence/cases/inputs/large1.txt
+Intelligence/cases/inputs/large2.txt
+Intelligence/cases/inputs/large3.txt
+Intelligence/cases/outputs/large1.txt
+Intelligence/cases/outputs/large2.txt
+Intelligence/cases/outputs/large3.txt
