@@ -1,18 +1,18 @@
-## Getting Started
+# Lahmacun Entrepreneur (A HashMap Project)
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+In this project, we have lahmacun company and we want to track down the status of the employees. We used a hash table and made operations on employees.
 
-## Folder Structure
+## Operations
 
-The workspace contains two folders by default, where:
+- Add: A new employee to add to the given branch at the given position.
+- Leave: Remove the given employee from the given branch if possible. If it's not possible some bonus should be given.
+- Performance Update: Process the monthly score of the given employee, there may be promotions and bonuses.
+- Print Monthly Bonuses: Prints total bonus amount given at the specified branch that month.
+- Print Overall Bonuses: Prints total amount of bonus that have given from the start of input file up to now in the specified branch.
+- Print Manager: Prints the manager of the specified branch.
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## Performance
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+- All operations execute in O(1) complexity.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+I didn't upload the large test cases because they exceeded the 100mb limit of Github. But they execute fairly quick. (around 1 to 4 seconds for extremely large inputs like 1 million lines of input)
