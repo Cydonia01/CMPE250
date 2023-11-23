@@ -18,4 +18,4 @@ In this project, we are an intelligence service and we have the list of criminal
 - Intel Rank operation has O(n) complexity.  
 - Intel Divide operation also has O(n) complexity.  
   
-I didn't upload the testcases because they exceeded the 100 mb limit of Github. But they execute fairly quick. (around 2 to 10 seconds for extremely large inputs like 871k lines of input)
+I didn't upload the large testcases because they exceeded the 100 mb limit of Github. But they execute fairly quick. (around 2 to 10 seconds for extremely large inputs like 871k lines of input)
