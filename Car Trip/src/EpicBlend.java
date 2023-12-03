@@ -1,74 +1,134 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 public class EpicBlend {
-    private ArrayList<Playlist> playlists;
-    private Heap songs;
+    private final String[] categories = {"heartache", "roadtrip", "blissful"};
+    private HashMap<Integer, Playlist> playlists;
+    private ArrayList<Heap> minHeaps;
+    private int heartacheCount, roadtripCount, blissfulCount;
     private int playlistLimit;
     private int heartacheLimit;
     private int roadtripLimit;
-    private int blissfulLimit ;
+    private int blissfulLimit;
     
     public EpicBlend(int playlistLimit, int heartacheLimit, int roadtripLimit, int blissfulLimit) {
-        this.playlists = new ArrayList<Playlist>();
+        this.playlists = new HashMap<Integer, Playlist>();
         this.playlistLimit = playlistLimit;
         this.heartacheLimit = heartacheLimit;
         this.roadtripLimit = roadtripLimit;
         this.blissfulLimit = blissfulLimit;
-        this.songs = new Heap(true, "heartache");
+        this.heartacheCount = 0;
+        this.roadtripCount = 0;
+        this.blissfulCount = 0;
+        this.minHeaps = new ArrayList<Heap>();
     }
 
-    public void addPlaylist(int playlistId, int playlistSize) {
-        playlists.add(new Playlist(playlistId, playlistSize));
+    public void addPlaylist(int playlistId, int playlistSize, Song[] items) {
+        playlists.put(playlistId, new Playlist(playlistId, playlistSize, items));
+    }
+
+    public void createEpicBlend() {
+        for (String category: categories) {
+            Heap heap = new Heap(false, category);
+            for (Playlist playlist: playlists.values()) {
+                switch (category) {
+                    case "heartache":
+                        for (Song song: playlist.getMaxHeaps().get(1).getSongs()) {
+                            firstAdd(song, heap, category, playlist);
+                        }
+                        break;
+                    case "roadtrip":
+                        for (Song song: playlist.getMaxHeaps().get(1).getSongs()) {
+                            firstAdd(song, heap, category, playlist);
+                        }
+                        break;
+                    case "blissful":
+                        for (Song song: playlist.getMaxHeaps().get(2).getSongs()) {
+                            firstAdd(song, heap, category, playlist);
+                        }
+                        break;
+                }
+            }
+            minHeaps.add(heap);
+        }
+    }
+
+    private void firstAdd(Song song, Heap heap, String category, Playlist playlist) {
+        if (heap.size() == 0) {
+            heap.add(song);
+            incrementCategoryCount(category);
+            playlist.incrementPlaylistCategoryCount(category);
+        }
+
+        else if (getCategoryCount(category) < getCategoryLimit(category)) {
+            if (playlist.getPlaylistCategoryCount(category) < playlistLimit) {
+                if (song.getCategoryScore(category) > heap.peek().getCategoryScore(category)) {
+                    heap.add(song);
+                    incrementCategoryCount(category);
+                    playlist.incrementPlaylistCategoryCount(category);
+                }
+            }
+        }
+        else {
+            if (playlist.getPlaylistCategoryCount(category) < playlistLimit) {
+                if (song.getCategoryScore(category) > heap.peek().getCategoryScore(category)) {
+                    heap.pop();
+                    heap.add(song);
+                    incrementCategoryCount(category);
+                    playlist.incrementPlaylistCategoryCount(category);
+                }
+            }
+        }
     }
 
 
+    private void incrementCategoryCount(String category) {
+        switch (category) {
+            case "heartache":
+                heartacheCount++;
+            case "roadtrip":
+                roadtripCount++;
+            case "blissful":
+                blissfulCount++;
+        }
+    }
+
+    private int getCategoryLimit(String category) {
+        switch (category) {
+            case "heartache":
+                return heartacheLimit;
+            case "roadtrip":
+                return roadtripLimit;
+            case "blissful":
+                return blissfulLimit;
+            default:
+                return 0;
+        }
+    }
+
+    private int getCategoryCount(String category) {
+        switch (category) {
+            case "heartache":
+                return heartacheCount;
+            case "roadtrip":
+                return roadtripCount;
+            case "blissful":
+                return blissfulCount;
+            default:
+                return 0;
+        }
+    }
 
     public void printBlend() {
-        for (Playlist playlist: playlists) {
-            System.out.println(playlist.getId() + " " + playlist.getSongs().size());
-            for (Song song: playlist.getSongs()) {
-                System.out.print(song.getId() + " ");
+        for (Playlist playlist: playlists.values()) {
+            for (Song song: playlist.getMaxHeaps().get(0).getSongs()) {
+                System.out.print(song.getId() + " " + song.getName());
             }
             System.out.println();
         }
     }
 
-    public ArrayList<Playlist> getPlaylists() {
+    public HashMap<Integer, Playlist> getPlaylists() {
         return playlists;
     }
 
-    public void setPlaylists(ArrayList<Playlist> playlists) {
-        this.playlists = playlists;
-    }
-
-    public int getPlaylistLimit() {
-        return playlistLimit;
-    }
-
-    public void setPlaylistLimit(int playlistLimit) {
-        this.playlistLimit = playlistLimit;
-    }
-
-    public int getHeartacheLimit() {
-        return heartacheLimit;
-    }
-
-    public void setHeartacheLimit(int heartacheLimit) {
-        this.heartacheLimit = heartacheLimit;
-    }
-
-    public int getRoadtripLimit() {
-        return roadtripLimit;
-    }
-
-    public void setRoadtripLimit(int roadtripLimit) {
-        this.roadtripLimit = roadtripLimit;
-    }
-
-    public int getBlissfulLimit() {
-        return blissfulLimit;
-    }
-
-    public void setBlissfulLimit(int blissfulLimit) {
-        this.blissfulLimit = blissfulLimit;
-    } 
 }

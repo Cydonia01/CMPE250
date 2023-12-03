@@ -14,23 +14,30 @@ public class Heap {
         this.category = category;
     }
 
-    public Heap(Song[] items) {
-        songs = new ArrayList<Song>();
-        songs.add(null);
+    public Heap(boolean type, String category, Song[] items) {
+        this(type, category);
         for (Song item: items) {
             songs.add(item);
             size++;
         }
         buildHeap();
     }
+    
+    public ArrayList<Song> getSongs() {
+        return songs;
+    }
 
     public void add(Song song) {
-        int hole = ++size;
+        size++;
+        songs.add(song);
+        int hole = size;
         
-        for (songs.set(0, song); (maxHeap ? song.getCategoryScore(category) < songs.get(hole).getCategoryScore(category):song.getCategoryScore(category) > songs.get(hole).getCategoryScore(category)); hole /= 2) {
-            songs.set(hole, songs.get(hole/2));
+        while (hole > 1 && (maxHeap ? song.getCategoryScore(category) < songs.get(hole).getCategoryScore(category):song.getCategoryScore(category) > songs.get(hole).getCategoryScore(category))) {
+            Song parent = songs.get(hole/2);
+            songs.set(hole / 2, song);
+            songs.set(hole, parent);
+            hole = hole / 2;
         }
-        songs.set(hole, song);
     }
     
     public Song peek() {

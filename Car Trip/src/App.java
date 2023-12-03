@@ -49,21 +49,24 @@ public class App {
                 String[] data = reader.nextLine().split(" ");
                 int playlistId = Integer.parseInt(data[0]);
                 int playlistSize = Integer.parseInt(data[1]);
-                epicBlend.addPlaylist(playlistId, playlistSize);
 
                 data = reader.nextLine().split(" ");
-
-                for (String songId: data) {
-                    epicBlend.getPlaylists().get(i).getSongs().add(songs.get(Integer.parseInt(songId)));
+                Song[] items = new Song[playlistSize];
+                
+                for (int j = 0; j < playlistSize; j++) {
+                    items[j] = songs.get(Integer.parseInt(data[j]));
                 }
+                epicBlend.addPlaylist(playlistId, playlistSize, items);
             }
+            epicBlend.createEpicBlend();
 
             // reading sample input file and performing operations
-            int numOfOperations = Integer.parseInt(reader.nextLine());
+            /*int numOfOperations = Integer.parseInt(reader.nextLine());
             for (int i = 0; i < numOfOperations; i++) {
                 String[] data = reader.nextLine().split(" ");
                 chooseOperation(data, epicBlend, songs);
-            }
+            }*/
+            epicBlend.printBlend();
             reader.close();
             
         } catch (FileNotFoundException e) {
@@ -71,7 +74,7 @@ public class App {
         }
     }
 
-    public static void chooseOperation(String[] data, EpicBlend epicBlend, HashMap<Integer, Song> songs) {
+    /*public static void chooseOperation(String[] data, EpicBlend epicBlend, HashMap<Integer, Song> songs) {
         String operation = data[0];
         if (operation.equals("ASK")) {
             epicBlend.printBlend();
@@ -87,5 +90,5 @@ public class App {
             }
         }
         
-    }
+    }*/
 }
