@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Playlist {
     private final String[] categories = {"heartache", "roadtrip", "blissful"};
-    //private ArrayList<Heap> minHeaps;
+    private ArrayList<Heap> minHeaps;
     private ArrayList<Heap> maxHeaps;
     private int heartacheCount;
     private int roadtripCount;
@@ -16,21 +16,20 @@ public class Playlist {
         this.heartacheCount = 0;
         this.roadtripCount = 0;
         this.blissfulCount = 0;
-        //this.minHeaps = new ArrayList<Heap>();
+        this.minHeaps = new ArrayList<Heap>();
         this.maxHeaps = new ArrayList<Heap>();
         createHeaps(songs);
     }
 
-    private void createHeaps(Song[] songs) {
+    public void createHeaps(Song[] songs) {
         for (String category: categories) {
             Heap heap = new Heap(true, category, songs);
             maxHeaps.add(heap);
         }
-
-        /*for (String category: categories) {
-            Heap heap = new Heap(false, category, songs);
+        for (String category: categories) {
+            Heap heap = new Heap(false, category);
             minHeaps.add(heap);
-        }*/
+        }
     }
 
     public int getPlaylistCategoryCount(String category) {
@@ -62,13 +61,33 @@ public class Playlist {
 
     
 
-    public ArrayList<Heap> getMaxHeaps() {
-        return maxHeaps;
+    public Heap getMaxHeap(String category) {
+        switch (category) {
+            case "heartache":
+                return maxHeaps.get(0);
+            case "roadtrip":
+                return maxHeaps.get(1);
+            case "blissful":
+                return maxHeaps.get(2);
+        }
+        return null;
     }
     
-    /*public ArrayList<Heap> getMinHeaps() {
-        return minHeaps;
-    }*/
+    public Heap getMinHeap(String category) {
+        switch (category) {
+            case "heartache":
+                return minHeaps.get(0);
+            case "roadtrip":
+                return minHeaps.get(1);
+            case "blissful":
+                return minHeaps.get(2);
+        }
+        return null;
+    }
+
+    public void addMinHeap(Heap heap) {
+        minHeaps.add(heap);
+    }
 
     public int getId() {
         return id;

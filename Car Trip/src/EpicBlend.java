@@ -3,7 +3,6 @@ import java.util.HashMap;
 public class EpicBlend {
     private final String[] categories = {"heartache", "roadtrip", "blissful"};
     private HashMap<Integer, Playlist> playlists;
-    private ArrayList<Heap> minHeaps;
     private int heartacheCount, roadtripCount, blissfulCount;
     private int playlistLimit;
     private int heartacheLimit;
@@ -19,7 +18,6 @@ public class EpicBlend {
         this.heartacheCount = 0;
         this.roadtripCount = 0;
         this.blissfulCount = 0;
-        this.minHeaps = new ArrayList<Heap>();
     }
 
     public void addPlaylist(int playlistId, int playlistSize, Song[] items) {
@@ -28,27 +26,13 @@ public class EpicBlend {
 
     public void createEpicBlend() {
         for (String category: categories) {
-            Heap heap = new Heap(false, category);
             for (Playlist playlist: playlists.values()) {
-                switch (category) {
-                    case "heartache":
-                        for (Song song: playlist.getMaxHeaps().get(1).getSongs()) {
-                            firstAdd(song, heap, category, playlist);
-                        }
-                        break;
-                    case "roadtrip":
-                        for (Song song: playlist.getMaxHeaps().get(1).getSongs()) {
-                            firstAdd(song, heap, category, playlist);
-                        }
-                        break;
-                    case "blissful":
-                        for (Song song: playlist.getMaxHeaps().get(2).getSongs()) {
-                            firstAdd(song, heap, category, playlist);
-                        }
-                        break;
+                Heap minHeap = playlist.getMinHeap(category);
+                for (Song song: playlist.getMaxHeap(category).getSongs()) {
+                    firstAdd(song, minHeap, category, playlist);
                 }
+                playlist.addMinHeap(minHeap);
             }
-            minHeaps.add(heap);
         }
     }
 
@@ -118,14 +102,14 @@ public class EpicBlend {
         }
     }
 
-    public void printBlend() {
+    /*public void printBlend() {
         for (Playlist playlist: playlists.values()) {
             for (Song song: playlist.getMaxHeaps().get(0).getSongs()) {
                 System.out.print(song.getId() + " " + song.getName());
             }
             System.out.println();
         }
-    }
+    }*/
 
     public HashMap<Integer, Playlist> getPlaylists() {
         return playlists;

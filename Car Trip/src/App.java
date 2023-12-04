@@ -11,8 +11,8 @@ public class App {
         EpicBlend epicBlend;
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
         try {
-            File songsFile = new File("songs.txt");
-            File inputFile = new File("sample_0.txt");
+            File songsFile = new File("../inputs/songs.txt");
+            File inputFile = new File("../inputs/sample_0.txt");
             Scanner reader = new Scanner(songsFile);
             int numOfSongs = Integer.parseInt(reader.nextLine());
             
@@ -27,8 +27,7 @@ public class App {
                 int blissfulScore = Integer.parseInt(structure[5]);
                 Song song = new Song(id, name, playCount, heartacheScore, roadtripScore, blissfulScore);
                 songs.put(id, song);
-            }
-            
+            }   
 
             reader.close();
 
@@ -40,6 +39,7 @@ public class App {
             int heartacheLimit = Integer.parseInt(firstLine[1]);
             int roadtripLimit = Integer.parseInt(firstLine[2]);
             int blissfulLimit = Integer.parseInt(firstLine[3]);
+            
             epicBlend = new EpicBlend(playlistLimit,  heartacheLimit,  roadtripLimit,  blissfulLimit);
 
             // reading sample input file and creating playlists
@@ -51,11 +51,13 @@ public class App {
                 int playlistSize = Integer.parseInt(data[1]);
 
                 data = reader.nextLine().split(" ");
+                
                 Song[] items = new Song[playlistSize];
                 
                 for (int j = 0; j < playlistSize; j++) {
                     items[j] = songs.get(Integer.parseInt(data[j]));
                 }
+                
                 epicBlend.addPlaylist(playlistId, playlistSize, items);
             }
             epicBlend.createEpicBlend();
@@ -66,7 +68,7 @@ public class App {
                 String[] data = reader.nextLine().split(" ");
                 chooseOperation(data, epicBlend, songs);
             }*/
-            epicBlend.printBlend();
+            //epicBlend.printBlend();
             reader.close();
             
         } catch (FileNotFoundException e) {
