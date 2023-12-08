@@ -1,17 +1,20 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Heap {
     private ArrayList<Song> songs;
+    private HashSet<Integer> removedSongs;
     private int size;
-    private boolean maxHeap;
+    private boolean type;
     private String category;
     
     public Heap(boolean type, String category) {
         this.songs = new ArrayList<Song>();
         songs.add(null);
         this.size = 0;
-        this.maxHeap = type ? true:false;
+        this.type = type;
         this.category = category;
+        this.removedSongs = new HashSet<Integer>();
     }
 
     public Heap(boolean type, String category, Song[] items) {
@@ -32,7 +35,7 @@ public class Heap {
         songs.add(song);
         int hole = size;
         
-        while (hole > 1 && (maxHeap ? song.getCategoryScore(category) < songs.get(hole).getCategoryScore(category):song.getCategoryScore(category) > songs.get(hole).getCategoryScore(category))) {
+        while (hole > 1 && (type ? song.compareTo(songs.get(hole/2), category) > 0:song.compareTo(songs.get(hole/2), category) < 0)) {
             Song parent = songs.get(hole/2);
             songs.set(hole / 2, song);
             songs.set(hole, parent);
@@ -41,10 +44,12 @@ public class Heap {
     }
     
     public Song peek() {
+        if (size == 0) return null;
         return songs.get(1);
     }
 
     public Song pop() {
+        if (size == 0) return null;
         Song root = peek();
         songs.set(1, songs.get(size));
         songs.remove(size);
@@ -66,6 +71,10 @@ public class Heap {
         return size;
     }
 
+    public void remove(int songId) {
+        removedSongs.add(songId);
+    }
+
     public void percolateDown(int hole) {
         int child;
         Song temp = songs.get(hole);
@@ -73,10 +82,10 @@ public class Heap {
         while (hole * 2 <= size) {
             child = hole * 2;
 
-            if (child != size && (maxHeap ? songs.get(child+1).getCategoryScore(category) < songs.get(child).getCategoryScore(category):songs.get(child+1).getCategoryScore(category) > songs.get(child).getCategoryScore(category))) {
+            if (child != size && (type ? songs.get(child + 1).compareTo(songs.get(child), category) > 0:songs.get(child + 1).compareTo(songs.get(child), category) < 0)) {
                 child++;
             }
-            if (maxHeap ? songs.get(child).getCategoryScore(category) < temp.getCategoryScore(category):songs.get(child).getCategoryScore(category) > temp.getCategoryScore(category)) {
+            if (type ? songs.get(child).compareTo(temp, category) > 0:songs.get(child).compareTo(temp, category) < 0) {
                 songs.set(hole, songs.get(child));
             }
             else {
@@ -87,5 +96,3 @@ public class Heap {
         songs.set(hole, temp);
     }
 }
-
-

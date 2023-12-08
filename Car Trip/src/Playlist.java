@@ -4,20 +4,18 @@ public class Playlist {
     private final String[] categories = {"heartache", "roadtrip", "blissful"};
     private ArrayList<Heap> minHeaps;
     private ArrayList<Heap> maxHeaps;
-    private int heartacheCount;
-    private int roadtripCount;
-    private int blissfulCount;
+    private int heartacheCount, roadtripCount, blissfulCount;
     private int id;
     private int size;
 
     public Playlist(int id, int size, Song[] songs) {
-        this.id = id;
-        this.size = size;
+        this.minHeaps = new ArrayList<Heap>();
+        this.maxHeaps = new ArrayList<Heap>();
         this.heartacheCount = 0;
         this.roadtripCount = 0;
         this.blissfulCount = 0;
-        this.minHeaps = new ArrayList<Heap>();
-        this.maxHeaps = new ArrayList<Heap>();
+        this.id = id;
+        this.size = size;
         createHeaps(songs);
     }
 
@@ -25,6 +23,9 @@ public class Playlist {
         for (String category: categories) {
             Heap heap = new Heap(true, category, songs);
             maxHeaps.add(heap);
+            for (Song song: songs) {
+                song.setPlaylistId(id);
+            }
         }
         for (String category: categories) {
             Heap heap = new Heap(false, category);
