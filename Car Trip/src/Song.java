@@ -56,7 +56,7 @@ public class Song {
         } else if (this.getCategoryScore(category) < song.getCategoryScore(category)) {
             return -1;
         } else {
-            return this.name.compareTo(song.getName());
+            return song.getName().compareTo(this.getName());
         }
     }
 

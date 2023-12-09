@@ -45,18 +45,40 @@ public class Heap {
     
     public Song peek() {
         if (size == 0) return null;
+        Song root = songs.get(1);
+        while (removedSongs.contains(root.getId())) {
+            songs.set(1, songs.get(size));
+            songs.remove(size);
+            size--;
+            removedSongs.remove(root.getId());
+            if (size > 1)
+                percolateDown(1);
+            if (size == 0)
+                return null;
+            root = songs.get(1);
+        }
         return songs.get(1);
     }
 
     public Song pop() {
         if (size == 0) return null;
-        Song root = peek();
+        Song root = songs.get(1);
+        while (removedSongs.contains(root.getId())) {
+            songs.set(1, songs.get(size));
+            songs.remove(size);
+            size--;
+            removedSongs.remove(root.getId());
+            if (size > 1)
+                percolateDown(1);
+            if (size == 0)
+                return null;
+            root = songs.get(1);
+        }
         songs.set(1, songs.get(size));
         songs.remove(size);
         size--;
-        if (size > 1) {
+        if (size > 1)
             percolateDown(1);
-        }
 
         return root;
     }

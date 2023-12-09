@@ -60,7 +60,19 @@ public class Playlist {
         }
     }
 
-    
+    public void decrementPlaylistCategoryCount(String category) {
+        switch (category) {
+            case "heartache":
+                heartacheCount--;
+                break;
+            case "roadtrip":
+                roadtripCount--;
+                break;
+            case "blissful":
+                blissfulCount--;
+                break;
+        }
+    }
 
     public Heap getMaxHeap(String category) {
         switch (category) {

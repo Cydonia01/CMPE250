@@ -11,8 +11,8 @@ public class App {
         EpicBlend epicBlend;
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
         try {
-            File songsFile = new File("songs.txt");
-            File inputFile = new File("sample_1.txt");
+            File songsFile = new File("songs1.txt");
+            File inputFile = new File("add_small.txt");
             Scanner reader = new Scanner(songsFile);
             int numOfSongs = Integer.parseInt(reader.nextLine());
             
@@ -52,14 +52,14 @@ public class App {
 
                 data = reader.nextLine().split(" ");
                 Song[] items = new Song[playlistSize];
-                
+
                 for (int j = 0; j < playlistSize; j++) {
                     items[j] = songs.get(Integer.parseInt(data[j]));
                 }
                 
                 epicBlend.addPlaylist(playlistId, playlistSize, items);
             }
-            epicBlend.createEpicMaxHeap();
+            epicBlend.createEpicMaxHeaps();
             epicBlend.createEpicBlend();
 
             // reading sample input file and performing operations
