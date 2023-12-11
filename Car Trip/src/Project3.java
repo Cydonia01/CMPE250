@@ -10,9 +10,9 @@ public class Project3 {
         EpicBlend epicBlend;
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
         try {
-            FileWriter writer = new FileWriter("../output.txt");
-            File songsFile = new File("songs1.txt");
-            File inputFile = new File("general_small.txt");
+            FileWriter writer = new FileWriter(args[2]);
+            File songsFile = new File(args[0]);
+            File inputFile = new File(args[1]);
             Scanner reader = new Scanner(songsFile);
             int numOfSongs = Integer.parseInt(reader.nextLine());
             

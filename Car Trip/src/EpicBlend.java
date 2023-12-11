@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 public class EpicBlend {
     private final String[] categories = {"heartache", "roadtrip", "blissful"};
@@ -37,9 +36,6 @@ public class EpicBlend {
         for (String category: categories) {
             Heap heap = new Heap(false, category);
             epicMinHeaps.add(heap);
-        }
-
-        for (String category: categories) {
             songsInEpicBlend.add(new HashSet<Integer>());
         }
     }
@@ -77,6 +73,7 @@ public class EpicBlend {
             }
         }
     }
+
     public void printBlend() {
         for (String category: categories) {
             System.out.println(category);
@@ -122,8 +119,11 @@ public class EpicBlend {
                     Playlist bestPlaylist = playlists.get(bestSong.getPlaylistId());
                     replacingPlaylist = bestPlaylist;
 
-                    for (int i = (int) Math.pow(2, level) + 1; i < (int) Math.pow(2, level); i++) {
-                        Song currentSong = epicMaxHeaps.get(getCategoryIndex(category)).getSongs().get(i);
+                    for (int i = (int) Math.pow(2, level); i < (int) Math.pow(2, level + 1); i++) {
+                        Song currentSong = null;
+                        if (i < epicMaxHeaps.get(getCategoryIndex(category)).getSongs().size()) {
+                            currentSong = epicMaxHeaps.get(getCategoryIndex(category)).getSongs().get(i);
+                        }
                         
                         if (currentSong == null) break;
                         
@@ -137,8 +137,10 @@ public class EpicBlend {
                     replacingPlaylist = bestPlaylist;
                     level++;
                 }
-                if (replacingPlaylist.getMaxHeap(category).size() > 0) {
-                    lastRoot = replacingPlaylist.getMaxHeap(category).peek();
+                if (replacingPlaylist != null) {
+                    if (replacingPlaylist.getMaxHeap(category).size() > 0) {
+                        lastRoot = replacingPlaylist.getMaxHeap(category).peek();
+                    }
                 }
 
                 minHeap.remove(songId);
@@ -168,6 +170,8 @@ public class EpicBlend {
         }
         writer.write(addLog.strip() + "\n");
         writer.write(removeLog.strip() + "\n");
+        //printBlend();
+        //printRemoved();
     }
 
     public void add(int playlistId, Song song) throws IOException {
@@ -183,7 +187,7 @@ public class EpicBlend {
             Heap maxHeap = playlist.getMaxHeap(category);
             Heap minHeap = playlist.getMinHeap(category);
             lastRoot = maxHeap.peek();
-
+            
             //playlist limiti dolmamış
             if (playlist.getPlaylistCategoryCount(category) < playlistLimit) {
                 //playlist ve epic blend limiti dolmamış
@@ -204,6 +208,8 @@ public class EpicBlend {
                     added = true;
                     playlist.incrementPlaylistCategoryCount(category);
                     playlists.get(removedSong.getPlaylistId()).decrementPlaylistCategoryCount(category);
+                    playlists.get(removedSong.getPlaylistId()).getMaxHeap(category).add(removedSong);
+                    epicMaxHeaps.get(getCategoryIndex(category)).add(removedSong);//rastgele ekleyemeyiz ki
                 }
             }
 
@@ -245,6 +251,16 @@ public class EpicBlend {
         writer.write(removeLog.strip() + "\n");
     }
 
+    public void printRemoved() {
+        for (String category: categories) {
+            System.out.println(category);
+            for (Integer song: songsInEpicBlend.get(getCategoryIndex(category))) {
+                System.out.print(song + " ");
+            }
+            System.out.println();
+        }
+    }
+
     public int partition(ArrayList<Song> songs, int low, int high) {
         Song pivot = songs.get(high);
         int i = (low - 1);
@@ -281,17 +297,25 @@ public class EpicBlend {
         
         quickSort(combinedSongs, 0, combinedSongs.size() - 1);
 
+        String askLog = "";
         for (int i = 0; i < combinedSongs.size(); i++) {
             if (i > 0) {
                 if (combinedSongs.get(i).getName().equals(combinedSongs.get(i - 1).getName())) {
                     continue;
                 }
             }
-            if (i == combinedSongs.size() - 1)
-                writer.write(combinedSongs.get(i).getId() + "\n");
-            else
-                writer.write(combinedSongs.get(i).getId() + " ");
+            
+            boolean inEpicBlend = false;
+            for (String category: categories) {
+                if (songsInEpicBlend.get(getCategoryIndex(category)).contains(combinedSongs.get(i).getId())) {
+                    inEpicBlend = true;
+                }
+            }
+            if (inEpicBlend) {
+                askLog += combinedSongs.get(i).getId() + " ";
+            }
         }
+        writer.write(askLog.strip() + "\n");
     }
 
     public void addPlaylist(int playlistId, int playlistSize, Song[] items) {
