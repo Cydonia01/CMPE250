@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 public class Project3 {
     public static void main(String[] args) throws Exception {
+        long startTime = System.currentTimeMillis();
         EpicBlend epicBlend;
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
         try {
@@ -74,6 +75,7 @@ public class Project3 {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        System.out.println(System.currentTimeMillis() - startTime);
     }
 
     public static void chooseOperation(String[] data, EpicBlend epicBlend, HashMap<Integer, Song> songs) throws IOException {

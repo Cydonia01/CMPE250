@@ -32,9 +32,9 @@ public class Heap {
 
     public void add(Song song) {
         size++;
-        /*if (removedSongs.contains(song.getId())) {
+        if (removedSongs.contains(song.getId())) {
             removedSongs.remove(song.getId());
-        }*/
+        }
         songs.add(song);
         int hole = size;
         
