@@ -90,10 +90,10 @@ public class EpicBlend {
             
             //playlist limiti dolmamış
             if (playlist.getPlaylistCategoryCount(category) < playlistLimit) {
-
                 //playlist ve epic blend limiti dolmamış
                 if (getCategoryCount(category) < getCategoryLimit(category)) {
                     minHeap.add(song);
+                    songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
                     epicMinHeaps.get(getCategoryIndex(category)).add(song);
                     incrementCategoryCount(category);
                     playlist.incrementPlaylistCategoryCount(category);
@@ -102,9 +102,6 @@ public class EpicBlend {
 
                 // epic blend limiti dolmuş
                 else if (epicMinHeaps.get(getCategoryIndex(category)).peek() == null || song.compareTo(epicMinHeaps.get(getCategoryIndex(category)).peek(), category) > 0) {
-                    minHeap.add(song);
-                    songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
-
                     removedSong = epicMinHeaps.get(getCategoryIndex(category)).pop();
 
                     Playlist removedPlaylist = playlists.get(removedSong.getPlaylistId());
@@ -120,7 +117,8 @@ public class EpicBlend {
                         epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
                         epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
                     }
-
+                    minHeap.add(song);
+                    songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
                     songsInEpicBlend.get(getCategoryIndex(category)).remove(removedSong.getId());
                     epicMinHeaps.get(getCategoryIndex(category)).add(song);
                     playlist.incrementPlaylistCategoryCount(category);
@@ -136,7 +134,6 @@ public class EpicBlend {
             //playlist limiti dolmuş
             else if (song.compareTo(minHeap.peek(), category) > 0) {
                 removedSong = minHeap.pop();
-                minHeap.add(song);
                 lastRoot = maxHeap.peek();
                 maxHeap.add(removedSong);
                 newRoot = maxHeap.peek();
@@ -149,6 +146,7 @@ public class EpicBlend {
                     epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
                 }
                 
+                minHeap.add(song);
                 songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
                 songsInEpicBlend.get(getCategoryIndex(category)).remove(removedSong.getId());
                 epicMinHeaps.get(getCategoryIndex(category)).remove(removedSong.getId());
@@ -194,8 +192,8 @@ public class EpicBlend {
         }
     }
     public void remove(int playlistId, int songId) throws IOException {
-        printBlend();
-        printEpicMax();
+        //printBlend();
+        //printEpicMax();
         String addLog = "";
         String removeLog = "";
         for (String category: categories) {
@@ -211,9 +209,9 @@ public class EpicBlend {
                 newRoot = maxHeap.peek();
                 
                 if (newRoot != null && lastRoot != null && newRoot.getId() != lastRoot.getId()) {
-                    epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
                     epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
                 }
+                epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
                 addLog += "0 ";
                 removeLog += "0 ";
             }
@@ -221,8 +219,10 @@ public class EpicBlend {
                 Song replacingSong = null;
                 Playlist replacingPlaylist = null;
                 playlist.decrementPlaylistCategoryCount(category);
+                
                 while (epicMaxHeaps.get(getCategoryIndex(category)).peek() != null) {
                     replacingSong = epicMaxHeaps.get(getCategoryIndex(category)).pop();
+                    System.out.println(replacingSong.getId());
                     replacingPlaylist = playlists.get(replacingSong.getPlaylistId());
                     if (replacingPlaylist.getPlaylistCategoryCount(category) < playlistLimit) {
                         break;
@@ -246,6 +246,9 @@ public class EpicBlend {
                     addLog += String.format("%d ", replacingSong.getId());
                 }
                 else {
+                    minHeap.remove(songId);
+                    songsInEpicBlend.get(getCategoryIndex(category)).remove(songId);
+                    epicMinHeaps.get(getCategoryIndex(category)).remove(songId);
                     addLog += "0 ";
                 }
                 if (playlist.getPlaylistCategoryCount(category) == playlistLimit - 1 && playlist.getMaxHeap(category).peek() != null) {
