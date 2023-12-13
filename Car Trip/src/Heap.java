@@ -61,7 +61,7 @@ public class Heap {
                 return null;
             root = songs.get(1);
         }
-        return songs.get(1);
+        return root;
     }
 
     public Song pop() {
@@ -85,6 +85,10 @@ public class Heap {
             percolateDown(1);
 
         return root;
+    }
+
+    public HashSet<Integer> getRemovedSongs() {
+        return removedSongs;
     }
 
     public void buildHeap() {
