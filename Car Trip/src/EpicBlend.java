@@ -84,24 +84,47 @@ public class EpicBlend {
         Song removedSong = null;
         Song lastRoot;
         Song newRoot;
+
         for (String category: categories) {
             Heap maxHeap = playlist.getMaxHeap(category);
             Heap minHeap = playlist.getMinHeap(category);
-            
-            //playlist limiti dolmamış
-            if (playlist.getPlaylistCategoryCount(category) < playlistLimit) {
-                //playlist ve epic blend limiti dolmamış
-                if (getCategoryCount(category) < getCategoryLimit(category)) {
-                    minHeap.add(song);
-                    songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
-                    epicMinHeaps.get(getCategoryIndex(category)).add(song);
-                    incrementCategoryCount(category);
-                    playlist.incrementPlaylistCategoryCount(category);
-                    added = true;
-                }
+            // playlist limiti dolmamış
+            if (playlist.getPlaylistCategoryCount(category) < playlistLimit && getCategoryCount(category) < getCategoryLimit(category)) {
+                minHeap.add(song);
+                songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
+                epicMinHeaps.get(getCategoryIndex(category)).add(song);
+                incrementCategoryCount(category);
+                playlist.incrementPlaylistCategoryCount(category);
+                added = true;
+            }
 
-                // epic blend limiti dolmuş
-                else if (epicMinHeaps.get(getCategoryIndex(category)).peek() == null || song.compareTo(epicMinHeaps.get(getCategoryIndex(category)).peek(), category) > 0) {
+            // playlist limiti dolmuş
+            else if (playlist.getPlaylistCategoryCount(category) == playlistLimit && song.compareTo(minHeap.peek(), category) > 0) {
+                removedSong = minHeap.pop();
+                lastRoot = maxHeap.peek();
+                maxHeap.add(removedSong);
+                newRoot = maxHeap.peek();
+                
+                if (lastRoot == null)
+                    epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
+
+                if (lastRoot != null && newRoot != null && lastRoot.getId() != newRoot.getId()) {
+                    epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
+                    epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
+                }
+                
+                minHeap.add(song);
+                songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
+                songsInEpicBlend.get(getCategoryIndex(category)).remove(removedSong.getId());
+                epicMinHeaps.get(getCategoryIndex(category)).remove(removedSong.getId());
+                epicMinHeaps.get(getCategoryIndex(category)).add(song);
+                added = true;
+            }
+
+            //epic blend limiti dolmuş
+
+            else if (playlist.getPlaylistCategoryCount(category) < playlistLimit && getCategoryCount(category) == getCategoryLimit(category)) {
+                if (epicMinHeaps.get(getCategoryIndex(category)).peek() != null && song.compareTo(epicMinHeaps.get(getCategoryIndex(category)).peek(), category) > 0) {
                     removedSong = epicMinHeaps.get(getCategoryIndex(category)).pop();
 
                     Playlist removedPlaylist = playlists.get(removedSong.getPlaylistId());
@@ -110,9 +133,9 @@ public class EpicBlend {
                     removedPlaylist.getMaxHeap(category).add(removedSong);
 
                     newRoot = removedPlaylist.getMaxHeap(category).peek();
-                    if (lastRoot == null) {
+                    if (lastRoot == null)
                         epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
-                    }
+
                     if (lastRoot != null && newRoot != null && lastRoot.getId() != newRoot.getId()) {
                         epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
                         epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
@@ -130,30 +153,6 @@ public class EpicBlend {
                     }
                 }
             }
-
-            //playlist limiti dolmuş
-            else if (song.compareTo(minHeap.peek(), category) > 0) {
-                removedSong = minHeap.pop();
-                lastRoot = maxHeap.peek();
-                maxHeap.add(removedSong);
-                newRoot = maxHeap.peek();
-                
-                if (lastRoot == null) {
-                    epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
-                }
-                if (lastRoot != null && newRoot != null && lastRoot.getId() != newRoot.getId()) {
-                    epicMaxHeaps.get(getCategoryIndex(category)).remove(lastRoot.getId());
-                    epicMaxHeaps.get(getCategoryIndex(category)).add(newRoot);
-                }
-                
-                minHeap.add(song);
-                songsInEpicBlend.get(getCategoryIndex(category)).add(song.getId());
-                songsInEpicBlend.get(getCategoryIndex(category)).remove(removedSong.getId());
-                epicMinHeaps.get(getCategoryIndex(category)).remove(removedSong.getId());
-                epicMinHeaps.get(getCategoryIndex(category)).add(song);
-                added = true;
-            }
-
             if (added) {
                 addLog += String.format("%d ", song.getId());
                 added = false;
@@ -180,6 +179,8 @@ public class EpicBlend {
         writer.write(addLog.strip() + "\n");
         writer.write(removeLog.strip() + "\n");
     }
+    
+
 
     public void printEpicMax() {
         for (String category: categories) {
@@ -189,20 +190,6 @@ public class EpicBlend {
                 System.out.print(epicMaxHeaps.get(getCategoryIndex(category)).getSongs().get(i).getId() + " ");
             }
             System.out.println();
-        }
-    }
-
-    public void decrementCategoryCount(String category) {
-        switch (category) {
-            case "heartache":
-                heartacheCount--;
-                break;
-            case "roadtrip":
-                roadtripCount--;
-                break;
-            case "blissful":
-                blissfulCount--;
-                break;
         }
     }
 
@@ -260,7 +247,7 @@ public class EpicBlend {
                     epicMinHeaps.get(getCategoryIndex(category)).remove(songId);
                     minHeap.remove(songId);
                     songsInEpicBlend.get(getCategoryIndex(category)).remove(songId);
-                    //epicMaxHeaps.get(getCategoryIndex(category)).remove(replacingSong.getId()); atılabilir
+                    //epicMaxHeaps.get(getCategoryIndex(category)).remove(replacingSong.getId());
 
                     if (replacingPlaylist.getMaxHeap(category).peek() != null && replacingPlaylist.getPlaylistCategoryCount(category) < playlistLimit) {
                         epicMaxHeaps.get(getCategoryIndex(category)).add(replacingPlaylist.getMaxHeap(category).peek());
@@ -292,16 +279,6 @@ public class EpicBlend {
         }
     }
 
-    public void printRemoved() {
-        for (String category: categories) {
-            System.out.println(category);
-            for (Integer song: songsInEpicBlend.get(getCategoryIndex(category))) {
-                System.out.print(song + " ");
-            }
-            System.out.println();
-        }
-    }
-
     public int partition(ArrayList<Song> songs, int low, int high) {
         Song pivot = songs.get(high);
         int i = (low - 1);
@@ -319,8 +296,6 @@ public class EpicBlend {
         songs.set(high, temp);
         return (i + 1);
     }
-
-    
 
     public void quickSort(ArrayList<Song> songs, int low, int high) {
         if (low < high) {
@@ -408,6 +383,20 @@ public class EpicBlend {
                 return blissfulCount;
             default:
                 return 0;
+        }
+    }
+
+    public void decrementCategoryCount(String category) {
+        switch (category) {
+            case "heartache":
+                heartacheCount--;
+                break;
+            case "roadtrip":
+                roadtripCount--;
+                break;
+            case "blissful":
+                blissfulCount--;
+                break;
         }
     }
 }
