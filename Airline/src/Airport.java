@@ -1,14 +1,14 @@
 
 public class Airport {
-    public String AirportCode;
-    public String AirfieldName;
+    public String airportCode;
+    public String airfieldName;
     public double lat;
     public double lon;
     public double parkingCost;
 
-    public Airport(String AirportCode, String AirfieldName, double lat, double lon, double parkingCost) {
-        this.AirportCode = AirportCode;
-        this.AirfieldName = AirfieldName;
+    public Airport(String airportCode, String airfieldName, double lat, double lon, double parkingCost) {
+        this.airportCode = airportCode;
+        this.airfieldName = airfieldName;
         this.lat = lat;
         this.lon = lon;
         this.parkingCost = parkingCost;
