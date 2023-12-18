@@ -48,37 +48,25 @@ public class LoungeAviation {
         Set<String> visited = new HashSet<>();
         while(!PQueue.isEmpty()) {
             String current = PQueue.poll();
-            visited.add(current);
+            if (visited.contains(current))
+                continue;
+            else 
+                visited.add(current);
             
 
             for (String neighbor: directions.get(current)) {
-                if (neighbor.equals(current) || visited.contains(neighbor)) {
-                    continue;
-                }
                 double cost = evaluateCostT1(current, neighbor);
 
-                if (distances.get(neighbor) > distances.get(current) + cost) {
+                if (distances.get(current) + cost < distances.get(neighbor)) {
                     distances.put(neighbor, distances.get(current) + cost);
                     parents.put(neighbor, current);
                     PQueue.add(neighbor);
                 }
             }
         }
-        //printPath(parents, from, to);
-        //System.out.println(String.format(Locale.US, " %.5f", distances.get(from)));
+        printPath(parents, from, to);
+        System.out.println(String.format(Locale.US, " %.5f", distances.get(to)));
     }
-
-    /*public void findPath(String from, String to) {
-        // key: airportCode, value: airportCode
-        HashMap<String, String> parents = new HashMap<>();
-        
-        // key: airportCode, value: Double.MAX_VALUE
-        HashMap<String, Double> distances = new HashMap<>();
-        for (String airportCode: airports.keySet()) {
-            distances.put(airportCode, Double.MAX_VALUE);
-        }
-        distances.put(from, 0.0);
-    }*/
 
     private void printPath(HashMap<String, String> parents, String from, String to) {
         if (parents.get(to) == null) {
@@ -101,16 +89,28 @@ public class LoungeAviation {
 
         double dist = haversine(lat1, lon1, lat2, lon2);
         
-        double cost = 300 * W_d * W_l + dist;
+        double cost = 300.0 * W_d * W_l + dist;
+        /*if (from.equals("TR-0044") && to.equals("TR-0035")) {
+            System.out.println(dist);
+            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
+        }
+        if (from.equals("TR-0035") && to.equals("LTFC")) {
+            System.out.println(dist);
+            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
+        }
+        if (from.equals("LTFC") && to.equals("LTAB")) {
+            System.out.println(dist);
+            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
+        }*/
         return cost;
     }
 
     private double haversine(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
-        double inRoot = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+        double inRoot = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                * Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0);
         double dist = 2 * R * Math.asin(Math.sqrt(inRoot));
         return dist;
     }
@@ -132,6 +132,8 @@ public class LoungeAviation {
             return weatherMultiplier;
         }
     }
+
+    
 
     /*
     public void evaluateCostT2(String from, String to) {
