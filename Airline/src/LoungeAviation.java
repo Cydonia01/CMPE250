@@ -132,7 +132,55 @@ public class LoungeAviation {
             return weatherMultiplier;
         }
     }
-
+    
+    public long choosePlane(String plane, double distance) {
+        long passedTime = 0;
+        if (plane.equals("Carreidas 160")) {
+            if (distance <= 175) {
+                passedTime = 21600;
+            }
+            if (distance > 175 && distance <= 350) {
+                passedTime = 43200;
+            }
+            if (distance > 350) {
+                passedTime = 64800;
+            }
+        }
+        else if (plane.equals("Orion III")) {
+            if (distance <= 1500) {
+                passedTime = 21600;
+            }
+            if (distance > 1500 && distance <= 3000) {
+                passedTime = 43200;
+            }
+            if (distance > 3000) {
+                passedTime = 64800;
+            }
+        }
+        else if (plane.equals("Skyfleet S570")) {
+            if (distance <= 500) {
+                passedTime = 21600;
+            }
+            if (distance > 500 && distance <= 1000) {
+                passedTime = 43200;
+            }
+            if (distance > 1000) {
+                passedTime = 64800;
+            }
+        }
+        else if (plane.equals("T-16 Skyhopper")) {
+            if (distance <= 2500) {
+                passedTime = 21600;
+            }
+            if (distance > 2500 && distance <= 5000) {
+                passedTime = 43200;
+            }
+            if (distance > 5000) {
+                passedTime = 64800;
+            }
+        }
+        return passedTime;
+    }
     
 
     /*
