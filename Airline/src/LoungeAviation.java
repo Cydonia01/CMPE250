@@ -6,6 +6,9 @@ import java.util.Locale;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.lang.Math;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Stack;
 
 public class LoungeAviation {
     // Key: airfieldName, Value: HashMap<unixTime, weatherCode>
@@ -22,86 +25,75 @@ public class LoungeAviation {
 
     public final double R = 6371; // radius of the earth in km
     public long unixTime;
+    public FileWriter writer;
 
-    public LoungeAviation() {}
+    public LoungeAviation(FileWriter writer) {
+        this.writer = writer;
+    }
 
 
-    public void task1(String from, String to, long departureTime, long arrivalTime) {
+    public void task1(String from, String to, long departureTime, long arrivalTime) throws IOException {
         unixTime = departureTime;
         findPath(from, to);
     }
-    
-    public void findPath(String from, String to) {
-        // key: airportCode, value: airportCode
-        HashMap<String, String> parents = new HashMap<>();
-        
-        // key: airportCode, value: Double.MAX_VALUE
-        HashMap<String, Double> distances = new HashMap<>();
-        for (String airportCode: airports.keySet()) {
-            distances.put(airportCode, Double.MAX_VALUE);
-        }
 
-        PriorityQueue<String> PQueue = new PriorityQueue<>(airports.size(), (a, b) -> distances.get(a).compareTo(distances.get(b))); // Comparator.comparingDouble(distances::get)
-        
-        distances.put(from, 0.0);
-        PQueue.add(from);
-        Set<String> visited = new HashSet<>();
-        while(!PQueue.isEmpty()) {
-            String current = PQueue.poll();
-            if (visited.contains(current))
-                continue;
-            else 
-                visited.add(current);
-            
-
-            for (String neighbor: directions.get(current)) {
-                double cost = evaluateCostT1(current, neighbor);
-
-                if (distances.get(current) + cost < distances.get(neighbor)) {
-                    distances.put(neighbor, distances.get(current) + cost);
-                    parents.put(neighbor, current);
-                    PQueue.add(neighbor);
-                }
-            }
-        }
-        printPath(parents, from, to);
-        System.out.println(String.format(Locale.US, " %.5f", distances.get(to)));
+    public void task2(String plane, String from, String to, long departureTime, long arrivalTime) throws IOException {
+        unixTime = departureTime;
+        dfs(plane, from, to, arrivalTime);
     }
 
-    private void printPath(HashMap<String, String> parents, String from, String to) {
+    // Task 2
+    public void dfs(String plane, String from, String to, long arrivalTime) throws IOException {
+        Stack<String> stack = new Stack<>();
+        stack.push(from);
+        while (stack.size() > 0) {
+            if (stack.peek().equals(to)) {
+                break;
+            }
+            String current = stack.pop();
+            if (current.equals(to)) {
+                return;
+            }
+            for (String neighbor: directions.get(current)) {
+                double dist = evaluateDistance(plane, current, neighbor);
+                long passedTime = evaluatePassedTime(plane, dist);
+                double cost = evaluateCostT2(plane, current, neighbor, dist, passedTime);
+                if (unixTime + passedTime > arrivalTime) {
+                    continue;
+                }
+                stack.push(neighbor);
+            }
+        }
+        printPath2(parents, from, to);
+        System.out.println(String.format(Locale.US, " %.5f", distances.get(to)));
+    }
+    
+    private void printPath2(HashMap<String, String> parents, String from, String to) throws IOException {
         if (parents.get(to) == null) {
             System.out.print(to);
             return;
         }
-        printPath(parents, from, parents.get(to));
+        printPath2(parents, from, parents.get(to));
         System.out.print(" " + to);
     }
 
-    private double evaluateCostT1(String from, String to) {
-        double W_d = evaluateWeatherMultiplier(from); // weather multiplier for the departure airport
-        double W_l = evaluateWeatherMultiplier(to); // weather multiplier for the landing airport
-        
-        // evaluating distance (Haversine formula)
+    private double evaluateDistance(String plane, String from, String to) {
         double lat1 = airports.get(from).lat;
         double lon1 = airports.get(from).lon;
         double lat2 = airports.get(to).lat;
         double lon2 = airports.get(to).lon;
-
+        
+        // evaluating distance (Haversine formula)
         double dist = haversine(lat1, lon1, lat2, lon2);
+        return dist;
+    }
+
+    private double evaluateCostT2(String plane, String from, String to, double dist, long passedTime) {
+        double W_d = evaluateWeatherMultiplier2(from, 0); // weather multiplier for the departure airport
+        
+        double W_l = evaluateWeatherMultiplier2(to, passedTime); // weather multiplier for the landing airport
         
         double cost = 300.0 * W_d * W_l + dist;
-        /*if (from.equals("TR-0044") && to.equals("TR-0035")) {
-            System.out.println(dist);
-            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
-        }
-        if (from.equals("TR-0035") && to.equals("LTFC")) {
-            System.out.println(dist);
-            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
-        }
-        if (from.equals("LTFC") && to.equals("LTAB")) {
-            System.out.println(dist);
-            System.out.println(lat1 + " " + lon1 + " " + lat2 + " " + lon2);
-        }*/
         return cost;
     }
 
@@ -115,25 +107,39 @@ public class LoungeAviation {
         return dist;
     }
 
+    private double evaluateWeatherMultiplier2(String airportCode, long passedTime) {
+        String airfieldName = airports.get(airportCode).airfieldName;
+        int weatherCode = weathers.get(airfieldName).get(unixTime + passedTime);
+        int wind = (weatherCode & 16) >> 4;
+        int rain = (weatherCode & 8) >> 3;
+        int snow = (weatherCode & 4) >> 2;
+        int hail = (weatherCode & 2) >> 1;
+        int bolt = (weatherCode & 1);
+        double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
+        weatherOfAirfields.put(airfieldName, weatherMultiplier);
+        return weatherMultiplier;
+    }
+
+
+
+
+
+
+
     private double evaluateWeatherMultiplier(String airportCode) {
-        if (weatherOfAirfields.containsKey(airports.get(airportCode).airfieldName)) {
-            return weatherOfAirfields.get(airports.get(airportCode).airfieldName);
-        }
-        else {
-            String airfieldName = airports.get(airportCode).airfieldName;
-            int weatherCode = weathers.get(airfieldName).get(unixTime);
-            int wind = (weatherCode & 16) >> 4;
-            int rain = (weatherCode & 8) >> 3;
-            int snow = (weatherCode & 4) >> 2;
-            int hail = (weatherCode & 2) >> 1;
-            int bolt = (weatherCode & 1);
-            double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
-            weatherOfAirfields.put(airfieldName, weatherMultiplier);
-            return weatherMultiplier;
-        }
+        String airfieldName = airports.get(airportCode).airfieldName;
+        int weatherCode = weathers.get(airfieldName).get(unixTime);
+        int wind = (weatherCode & 16) >> 4;
+        int rain = (weatherCode & 8) >> 3;
+        int snow = (weatherCode & 4) >> 2;
+        int hail = (weatherCode & 2) >> 1;
+        int bolt = (weatherCode & 1);
+        double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
+        weatherOfAirfields.put(airfieldName, weatherMultiplier);
+        return weatherMultiplier;
     }
     
-    public long choosePlane(String plane, double distance) {
+    public long evaluatePassedTime(String plane, double distance) {
         long passedTime = 0;
         if (plane.equals("Carreidas 160")) {
             if (distance <= 175) {
@@ -181,12 +187,70 @@ public class LoungeAviation {
         }
         return passedTime;
     }
-    
 
-    /*
-    public void evaluateCostT2(String from, String to) {
-        evaluateCostT1(from, to);
+
+
+
+    public void findPath(String from, String to) throws IOException {
+        // key: airportCode, value: airportCode
+        HashMap<String, String> parents = new HashMap<>();
+        
+        // key: airportCode, value: Double.MAX_VALUE
+        HashMap<String, Double> distances = new HashMap<>();
+        for (String airportCode: airports.keySet()) {
+            distances.put(airportCode, Double.MAX_VALUE);
+        }
+
+        PriorityQueue<String> PQueue = new PriorityQueue<>(airports.size(), (a, b) -> distances.get(a).compareTo(distances.get(b))); // Comparator.comparingDouble(distances::get)
+        
+        distances.put(from, 0.0);
+        PQueue.add(from);
+        Set<String> visited = new HashSet<>();
+        while(!PQueue.isEmpty()) {
+            if (visited.contains(to))
+                break;
+            String current = PQueue.poll();
+            if (visited.contains(current))
+                continue;
+            else 
+                visited.add(current);
+
+            for (String neighbor: directions.get(current)) {
+                double cost = evaluateCostT1(current, neighbor);
+
+                if (distances.get(current) + cost < distances.get(neighbor)) {
+                    distances.put(neighbor, distances.get(current) + cost);
+                    parents.put(neighbor, current);
+                    PQueue.add(neighbor);
+                }
+            }
+        }
+        printPath(parents, from, to);
+        writer.write(String.format(Locale.US, " %.5f", distances.get(to)) + "\n");
     }
-    */
-    
+
+    private double evaluateCostT1(String from, String to) {
+        double W_d = evaluateWeatherMultiplier(from); // weather multiplier for the departure airport
+        double W_l = evaluateWeatherMultiplier(to); // weather multiplier for the landing airport
+        
+        // evaluating distance (Haversine formula)
+        double lat1 = airports.get(from).lat;
+        double lon1 = airports.get(from).lon;
+        double lat2 = airports.get(to).lat;
+        double lon2 = airports.get(to).lon;
+
+        double dist = haversine(lat1, lon1, lat2, lon2);
+        
+        double cost = 300.0 * W_d * W_l + dist;
+        return cost;
+    }
+
+    private void printPath(HashMap<String, String> parents, String from, String to) throws IOException {
+        if (parents.get(to) == null) {
+            writer.write(to);
+            return;
+        }
+        printPath(parents, from, parents.get(to));
+        writer.write(" " + to);
+    } 
 }

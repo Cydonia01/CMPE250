@@ -1,12 +1,15 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        LoungeAviation company = new LoungeAviation();
+        long startTime = System.currentTimeMillis();
         Scanner reader;
+        FileWriter writer = new FileWriter("TR-0_task1.txt");
+        LoungeAviation company = new LoungeAviation(writer);
 
         // reading the weather file
         File weatherFile = new File("cases/weather.csv");
@@ -68,8 +71,12 @@ public class App {
             long departureTime = Long.parseLong(data[2]);
             long arrivalTime = Long.parseLong(data[3]);
             company.task1(from, to, departureTime, arrivalTime);
+            company.task2(plane, from, to, departureTime, arrivalTime);
         }
         reader.close();
+        writer.close();
+        long endTime = System.currentTimeMillis();
+        System.out.println((endTime - startTime) + "ms");
         /* for (String airportCode: company.directions.keySet()) {
             for (String neighbor: company.directions.get(airportCode)) {
                 System.out.println(airportCode + " " + neighbor);
