@@ -1,4 +1,10 @@
-
+/**
+ * This class represents the Vertex in a graph.
+ * It creates a vertex with the given data.
+ * 
+ * @author Mehmet Ali Özdemir
+ * @since 29.12.2023
+ */
 public class Airport {
     public String airportCode;
     public String airfieldName;

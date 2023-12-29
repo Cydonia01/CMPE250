@@ -1,18 +1,26 @@
+/**
+ * This class represents the main application for the Airline program.
+ * It reads data from various files and performs operations based on the input.
+ * The program calculates flight routes and writes the results to an output file.
+ *
+ * @author Mehmet Ali Özdemir
+ * @since 29.12.2023
+ */
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class App {
+public class Main {
     public static void main(String[] args) throws Exception {
-        long startTime = System.currentTimeMillis();
         Scanner reader;
-        FileWriter writer = new FileWriter("TR-0_task1.txt");
+        FileWriter writer = new FileWriter(args[4]);
+        FileWriter writer2 = new FileWriter(args[5]);
         LoungeAviation company = new LoungeAviation(writer);
 
         // reading the weather file
-        File weatherFile = new File("cases/weather.csv");
+        File weatherFile = new File(args[2]);
         reader = new Scanner(weatherFile);
         reader.nextLine();
         while (reader.hasNextLine()) {
@@ -31,7 +39,7 @@ public class App {
         reader.close();
 
         // reading the airports file
-        File airportsFile = new File("cases/airports/TR-0.csv");
+        File airportsFile = new File(args[0]);
         reader = new Scanner(airportsFile);
         reader.nextLine();        
         while (reader.hasNextLine()) {
@@ -48,7 +56,7 @@ public class App {
         reader.close();
 
         // reading the directions file
-        File directions = new File("cases/directions/TR-0.csv");
+        File directions = new File(args[1]);
         reader = new Scanner(directions);
         reader.nextLine();
 
@@ -61,7 +69,7 @@ public class App {
         reader.close();
 
         // reading the mission file
-        File missionFile = new File("cases/missions/TR-0.in");
+        File missionFile = new File(args[3]);
         reader = new Scanner(missionFile);
         String plane = reader.nextLine();
         while(reader.hasNextLine()) {
@@ -71,16 +79,9 @@ public class App {
             long departureTime = Long.parseLong(data[2]);
             long arrivalTime = Long.parseLong(data[3]);
             company.task1(from, to, departureTime, arrivalTime);
-            company.task2(plane, from, to, departureTime, arrivalTime);
         }
         reader.close();
         writer.close();
-        long endTime = System.currentTimeMillis();
-        System.out.println((endTime - startTime) + "ms");
-        /* for (String airportCode: company.directions.keySet()) {
-            for (String neighbor: company.directions.get(airportCode)) {
-                System.out.println(airportCode + " " + neighbor);
-            }
-        }*/
+        writer2.close();
     }
 }

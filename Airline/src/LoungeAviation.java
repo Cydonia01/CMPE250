@@ -1,4 +1,11 @@
-import java.util.ArrayList;
+/**
+ * This class represents the Graph.
+ * It creates a graph from the given data and finds the shortest path between two airports.
+ * The program calculates flight routes and writes the results to an output file.
+ * 
+ * @author Mehmet Ali Özdemir
+ * @since 29.12.2023
+ */
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -8,7 +15,6 @@ import java.util.Set;
 import java.lang.Math;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Stack;
 
 public class LoungeAviation {
     // Key: airfieldName, Value: HashMap<unixTime, weatherCode>
@@ -31,166 +37,24 @@ public class LoungeAviation {
         this.writer = writer;
     }
 
-
+    /**
+     * This method calls findPath method to find the shortest path.
+     * @param from is the departure airport.
+     * @param to is the landing airport.
+     * @param departureTime is the departure time of the flight.
+     * @param arrivalTime is the arrival time of the flight.
+     * @throws IOException
+     */
     public void task1(String from, String to, long departureTime, long arrivalTime) throws IOException {
         unixTime = departureTime;
         findPath(from, to);
     }
 
-    public void task2(String plane, String from, String to, long departureTime, long arrivalTime) throws IOException {
-        unixTime = departureTime;
-        dfs(plane, from, to, arrivalTime);
-    }
-
-    // Task 2
-    public void dfs(String plane, String from, String to, long arrivalTime) throws IOException {
-        Stack<String> stack = new Stack<>();
-        stack.push(from);
-        while (stack.size() > 0) {
-            if (stack.peek().equals(to)) {
-                break;
-            }
-            String current = stack.pop();
-            if (current.equals(to)) {
-                return;
-            }
-            for (String neighbor: directions.get(current)) {
-                double dist = evaluateDistance(plane, current, neighbor);
-                long passedTime = evaluatePassedTime(plane, dist);
-                double cost = evaluateCostT2(plane, current, neighbor, dist, passedTime);
-                if (unixTime + passedTime > arrivalTime) {
-                    continue;
-                }
-                stack.push(neighbor);
-            }
-        }
-        printPath2(parents, from, to);
-        System.out.println(String.format(Locale.US, " %.5f", distances.get(to)));
-    }
-    
-    private void printPath2(HashMap<String, String> parents, String from, String to) throws IOException {
-        if (parents.get(to) == null) {
-            System.out.print(to);
-            return;
-        }
-        printPath2(parents, from, parents.get(to));
-        System.out.print(" " + to);
-    }
-
-    private double evaluateDistance(String plane, String from, String to) {
-        double lat1 = airports.get(from).lat;
-        double lon1 = airports.get(from).lon;
-        double lat2 = airports.get(to).lat;
-        double lon2 = airports.get(to).lon;
-        
-        // evaluating distance (Haversine formula)
-        double dist = haversine(lat1, lon1, lat2, lon2);
-        return dist;
-    }
-
-    private double evaluateCostT2(String plane, String from, String to, double dist, long passedTime) {
-        double W_d = evaluateWeatherMultiplier2(from, 0); // weather multiplier for the departure airport
-        
-        double W_l = evaluateWeatherMultiplier2(to, passedTime); // weather multiplier for the landing airport
-        
-        double cost = 300.0 * W_d * W_l + dist;
-        return cost;
-    }
-
-    private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double inRoot = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0);
-        double dist = 2 * R * Math.asin(Math.sqrt(inRoot));
-        return dist;
-    }
-
-    private double evaluateWeatherMultiplier2(String airportCode, long passedTime) {
-        String airfieldName = airports.get(airportCode).airfieldName;
-        int weatherCode = weathers.get(airfieldName).get(unixTime + passedTime);
-        int wind = (weatherCode & 16) >> 4;
-        int rain = (weatherCode & 8) >> 3;
-        int snow = (weatherCode & 4) >> 2;
-        int hail = (weatherCode & 2) >> 1;
-        int bolt = (weatherCode & 1);
-        double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
-        weatherOfAirfields.put(airfieldName, weatherMultiplier);
-        return weatherMultiplier;
-    }
-
-
-
-
-
-
-
-    private double evaluateWeatherMultiplier(String airportCode) {
-        String airfieldName = airports.get(airportCode).airfieldName;
-        int weatherCode = weathers.get(airfieldName).get(unixTime);
-        int wind = (weatherCode & 16) >> 4;
-        int rain = (weatherCode & 8) >> 3;
-        int snow = (weatherCode & 4) >> 2;
-        int hail = (weatherCode & 2) >> 1;
-        int bolt = (weatherCode & 1);
-        double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
-        weatherOfAirfields.put(airfieldName, weatherMultiplier);
-        return weatherMultiplier;
-    }
-    
-    public long evaluatePassedTime(String plane, double distance) {
-        long passedTime = 0;
-        if (plane.equals("Carreidas 160")) {
-            if (distance <= 175) {
-                passedTime = 21600;
-            }
-            if (distance > 175 && distance <= 350) {
-                passedTime = 43200;
-            }
-            if (distance > 350) {
-                passedTime = 64800;
-            }
-        }
-        else if (plane.equals("Orion III")) {
-            if (distance <= 1500) {
-                passedTime = 21600;
-            }
-            if (distance > 1500 && distance <= 3000) {
-                passedTime = 43200;
-            }
-            if (distance > 3000) {
-                passedTime = 64800;
-            }
-        }
-        else if (plane.equals("Skyfleet S570")) {
-            if (distance <= 500) {
-                passedTime = 21600;
-            }
-            if (distance > 500 && distance <= 1000) {
-                passedTime = 43200;
-            }
-            if (distance > 1000) {
-                passedTime = 64800;
-            }
-        }
-        else if (plane.equals("T-16 Skyhopper")) {
-            if (distance <= 2500) {
-                passedTime = 21600;
-            }
-            if (distance > 2500 && distance <= 5000) {
-                passedTime = 43200;
-            }
-            if (distance > 5000) {
-                passedTime = 64800;
-            }
-        }
-        return passedTime;
-    }
-
-
-
-
+    /**
+     * This method finds shortest path between departure and arrival airports. It uses dijkstra's algorithm.
+     * @param from is the departure airport.
+     * @param to is the landing airport.
+     */
     public void findPath(String from, String to) throws IOException {
         // key: airportCode, value: airportCode
         HashMap<String, String> parents = new HashMap<>();
@@ -216,7 +80,7 @@ public class LoungeAviation {
                 visited.add(current);
 
             for (String neighbor: directions.get(current)) {
-                double cost = evaluateCostT1(current, neighbor);
+                double cost = evaluateCost(current, neighbor);
 
                 if (distances.get(current) + cost < distances.get(neighbor)) {
                     distances.put(neighbor, distances.get(current) + cost);
@@ -229,7 +93,13 @@ public class LoungeAviation {
         writer.write(String.format(Locale.US, " %.5f", distances.get(to)) + "\n");
     }
 
-    private double evaluateCostT1(String from, String to) {
+
+    /**
+     * This method evaluates the cost of the flight between two airports.
+     * @param from is the departure airport.
+     * @param to is the landing airport.
+     */
+    private double evaluateCost(String from, String to) {
         double W_d = evaluateWeatherMultiplier(from); // weather multiplier for the departure airport
         double W_l = evaluateWeatherMultiplier(to); // weather multiplier for the landing airport
         
@@ -245,6 +115,49 @@ public class LoungeAviation {
         return cost;
     }
 
+    /**
+     * This method evaluates the weather multiplier for the given airport.
+     * @param airportCode is the airport code of the airport.
+     */
+    private double evaluateWeatherMultiplier(String airportCode) {
+        String airfieldName = airports.get(airportCode).airfieldName;
+        int weatherCode = weathers.get(airfieldName).get(unixTime);
+        int wind = (weatherCode & 16) >> 4;
+        int rain = (weatherCode & 8) >> 3;
+        int snow = (weatherCode & 4) >> 2;
+        int hail = (weatherCode & 2) >> 1;
+        int bolt = (weatherCode & 1);
+        double weatherMultiplier = (1 + 0.05 * wind) * (1 + 0.05 * rain) * (1 + 0.10 * snow) * (1 + 0.15 * hail) * (1 + 0.20 * bolt);
+        weatherOfAirfields.put(airfieldName, weatherMultiplier);
+        return weatherMultiplier;
+    }
+
+    /**
+     * This method calculates the distance between two airports using Haversine formula.
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     * @return distance between two airports.
+     */
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double inRoot = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0);
+        double dist = 2 * R * Math.asin(Math.sqrt(inRoot));
+        return dist;
+    }
+
+    /**
+     * This method prints the shortest path between two airports.
+     * It uses recursion to print the path.
+     * @param parents
+     * @param from
+     * @param to
+     * @throws IOException
+     */
     private void printPath(HashMap<String, String> parents, String from, String to) throws IOException {
         if (parents.get(to) == null) {
             writer.write(to);
