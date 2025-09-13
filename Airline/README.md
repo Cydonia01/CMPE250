@@ -1,18 +1,28 @@
-## Getting Started
+# Airline Project
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+This project simulates an airline management system, handling airports, flights, weather conditions, and mission planning.
 
-## Folder Structure
+## Structure
 
-The workspace contains two folders by default, where:
+- `cases/`
+  - `airports/`: CSV files with airport data.
+  - `directions/`: CSV files with flight direction data.
+  - `missions/`: Input files for different mission scenarios.
+  - `outputs/`: Expected output files for each mission and task.
+  - `times/`: Files with timing information for each scenario.
+  - `weather.csv`: Weather data for scenarios.
+- `src/`
+  - `Airport.java`: Airport class implementation.
+  - `LoungeAviation.java`: Lounge and aviation logic.
+  - `Main.java`: Main entry point for running the project.
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## How to Run
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+1. Compile the Java files in the `src/` directory.
+2. Run `Main.java` with the appropriate input files from the `cases/missions/` directory.
+3. Compare your output with the files in `cases/outputs/`.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+## Notes
 
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+- Each scenario is organized by region (AS, EU, INTER, TR).
+- Outputs are provided for two tasks per scenario.
